@@ -178,8 +178,8 @@ def main(argv):
 	M = Manifest(user,passwd)
 	D = pi3.Device(user,passwd)
 	
-	ping = D.ping_platform()
-	D.send_message("ping = {}".format(ping))
+	net_info = D.get_network_info()
+	D.send_message(net_info)
 	status = list([D.get_device_status()])
 	
 	# check if its the first start of a new FW

@@ -206,8 +206,94 @@ class Device:
 			print("[DEV] Rollback done")
 		else:
 			print("[DEV] Backup does not exists!")
+		
+	# restart FW
+	def restart(self):
+		print("[DEV] Reestarting FW")
+		
+		# create file to indicate the first start of a new FW
+		with open(self.start_file, 'w') as f:
+			f.write("1")
+			
+	# returns ping to platform in ms
+	def ping_platform():
+		host = 'konkerlabs.com'
+		
+		# Option for the number of packets as a function of
+		param = '-n' if platform.system().lower()=='windows' else '-c'
 	
-	# DOING...
+		# Building the command. Ex: "ping -c 1 google.com"
+		command = ['ping', param, '5', host]
+	
+		r = subprocess.run(command, stdout=subprocess.PIPE)
+# 		print("Result:", r)
+		
+		r_str = str(r.stdout).split('\\')
+# 		r_str = r_str.split('\\')
+# 		print('>>> ', r_str[-2])
+		
+		return r_str[-2].split('/')[4]
+	
+	# return a dict with ping and nmap info
+	def get_network_info(self):
+		ping = self.ping_platform()
+		print("[DEV] Ping is {} ms".format(ping))
+		
+		# TODO get this info
+		nmap = {}
+		
+		info = {"ping":ping, "nmap":nmap}
+		
+		return info
+	
+	# returns a list of dicts, of top 5 processes by cpu utilization
+	# each dict has PID, COMM, CPUTIME, MEM, CPU from ps
+	def top_processes(self):
+		command = "ps -eo pid,comm,cputime,%mem,%cpu --sort -%cpu,-%mem --no-headers".split()
+		
+		procs = subprocess.run(command, stdout=subprocess.PIPE)
+# 		print("Result:", procs)
+		
+		procs = str(procs.stdout).split('\\')
+		
+		top_procs = []
+		for p in procs[:5]:
+			l = p.split()[1:]
+			top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
+		print("Top processes: \n", top_procs)
+			
+		return top_procs
+	
+	#measure device temperature
+	def measure_temp(self):
+		temp = os.popen("vcgencmd measure_temp").readline()
+		temp = temp.replace("'C","").replace("temp=", "")
+		
+		return float(temp)
+	
+	# returns a dict with cpu utilization, memory utilization, 
+	#	timestamp delta (since last call of this function), device temperature,
+	#	top 5 processes
+	def get_device_status(self):
+		cpu = psutil.cpu_percent()
+		mem = psutil.virtual_memory().available 
+		
+		current_milli_time = round(time() * 1000)
+		temp = self.measure_temp()
+		top_procs = self.top_processes()
+		
+		status = {"cpu": cpu, "mem":mem, "temp":temp, "ts_diff":current_milli_time-self.last_milli_time, "ps":top_procs}
+		self.last_milli_time = current_milli_time
+		
+		print(status)
+		
+		return status
+		
+	# return True if all processes started correctly and communication is working, False otherwise
+	def check_start(self):
+		return True
+	
+	# send things to platform
 	def send_message(self, msg):
 		data = json.dumps({"update stage":msg})
 		requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
@@ -227,69 +313,3 @@ class Device:
 			print("[DEV] Sending: ", s)
 			
 		print("[DEV] Done sending")
-		
-	def restart(self):
-		print("[DEV] Reestarting FW")
-		
-		# create file to indicate the first start of a new FW
-		with open(self.start_file, 'w') as f:
-			f.write("1")
-			
-	def ping_platform():
-		host = 'konkerlabs.com'
-		
-		# Option for the number of packets as a function of
-		param = '-n' if platform.system().lower()=='windows' else '-c'
-	
-		# Building the command. Ex: "ping -c 1 google.com"
-		command = ['ping', param, '5', host]
-	
-		r = subprocess.run(command, stdout=subprocess.PIPE)
-# 		print("Result:", r)
-		
-		r_str = str(r.stdout).split('\\')
-# 		r_str = r_str.split('\\')
-# 		print('>>> ', r_str[-2])
-		
-		return r_str[-2].split('/')[4]
-	
-	def top_processes(self):
-		command = "ps -eo pid,comm,cputime,%mem,%cpu --sort -%cpu,-%mem --no-headers".split()
-		
-		procs = subprocess.run(command, stdout=subprocess.PIPE)
-# 		print("Result:", procs)
-		
-		procs = str(procs.stdout).split('\\')
-		
-		top_procs = []
-		for p in procs[:5]:
-			l = p.split()[1:]
-			top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
-		print("Top processes: \n", top_procs)
-			
-		return top_procs
-	
-	def measure_temp(self):
-		temp = os.popen("vcgencmd measure_temp").readline()
-		temp = temp.replace("'C","").replace("temp=", "")
-		
-		return float(temp)
-	
-	def get_device_status(self):
-		cpu = psutil.cpu_percent()
-		mem = psutil.virtual_memory().available 
-		
-		current_milli_time = round(time() * 1000)
-		temp = self.measure_temp()
-		top_procs = self.top_processes()
-		
-		status = {"cpu": cpu, "mem":mem, "temp":temp, "ts_diff":current_milli_time-self.last_milli_time, "ps":top_procs}
-		self.last_milli_time = current_milli_time
-		
-		print(status)
-		
-		return status
-		
-	# return True if all processes started correctly and communication is working, False otherwise
-	def check_start(self):
-		return True
