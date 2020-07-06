@@ -7,7 +7,6 @@ Created on Mon Apr 13 14:28:43 2020
 """
 import sys, json, requests, hashlib, os
 import pi3_device as pi3
-import numpy as np
 from time import sleep
 
 class Manifest:
@@ -156,19 +155,23 @@ class Manifest:
 		return True
 
 def read_last_conf():
-	r = ''
+	conf = ''
 	try:
 		with open('config.json', 'r') as infile:
-			r = json.load(infile)
+			conf = json.load(infile)
 	# Do something with the file
 	except IOError:
 		print("Configuration file not found. Cannot access platform.")
 	
-	return r
+	return conf
 
 def main(argv):
 	print("Starting manifest parser")
 	configuration = read_last_conf()
+	
+	if configuration == '':
+		return
+	
 	user = configuration['user']
 	passwd = configuration['pwd']
 	
@@ -177,14 +180,14 @@ def main(argv):
 	
 	ping = D.ping_platform()
 	D.send_message("ping = {}".format(ping))
-	status = np.array(D.get_device_status())
+	status = list([D.get_device_status()])
 	
 	# check if its the first start of a new FW
 	if D.check_first_start():
 		print("Starting a new FW")
 		if D.check_start():
 			print("New version: ", D.version)
-			status = np.vstack((status, D.get_device_status))
+			status.append(D.get_device_status())
 			D.send_message("Update correct")
 		else:
 			print("New FW did not start correctly")
@@ -195,16 +198,16 @@ def main(argv):
 		print("Starting OTA process")
 	
 	if M.get_manifest():
-		status = np.vstack((status, D.get_device_status))
+		status.append(D.get_device_status())
 		D.send_message("Manifest received")
 		M.parse_manifest(D)
 		if M.valid:
 # 			sleep(2)
-			status = np.vstack((status, D.get_device_status))
+			status.append(D.get_device_status())
 			D.send_message("Manifest correct")
 			if M.apply_manifest(D):
 				print("Update finished!")
-				status = np.vstack((status, D.get_device_status))
+				status.append(D.get_device_status())
 				D.send_message("Rebooting")
 				D.restart()
 		else:
@@ -213,6 +216,8 @@ def main(argv):
 	else:
 		D.send_exception("Could not get manifest")
 		print("Could not get manifest from Konker")
+		
+	D.send_device_status(status)
 
 if __name__ == "__main__":
 	main(sys.argv)

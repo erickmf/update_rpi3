@@ -45,6 +45,7 @@ class Device:
 		self.start_file = "../app/start"
 		self.user = user
 		self.passwd = passwd
+		self.last_milli_time = round(time() * 1000)
 		
 	#backup current FW in zip format
 	def _backup_fw(self, dirs=''):
@@ -209,13 +210,23 @@ class Device:
 	# DOING...
 	def send_message(self, msg):
 		data = json.dumps({"update stage":msg})
-		r = requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+		requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
 		print("[DEV] Sending: ", msg)
 		
 	def send_exception(self, exception):
 		data = json.dumps({"update exception":exception})
 		requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
 		print("[DEV] Exception: ", exception)
+		
+	def send_device_status(self, status_list):
+		print("[DEV] Sending status colllected during execution")
+		
+		for s in status_list:
+			data = json.dumps(s)
+			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+			print("[DEV] Sending: ", s)
+			
+		print("[DEV] Done sending")
 		
 	def restart(self):
 		print("[DEV] Reestarting FW")
@@ -225,10 +236,6 @@ class Device:
 			f.write("1")
 			
 	def ping_platform():
-		"""
-		Returns True if host (str) responds to a ping request.
-		Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
-		"""
 		host = 'konkerlabs.com'
 		
 		# Option for the number of packets as a function of
@@ -238,28 +245,50 @@ class Device:
 		command = ['ping', param, '5', host]
 	
 		r = subprocess.run(command, stdout=subprocess.PIPE)
-		print("Result:", r)
+# 		print("Result:", r)
 		
 		r_str = str(r.stdout).split('\\')
 # 		r_str = r_str.split('\\')
-		print('>>> ', r_str[-2])
+# 		print('>>> ', r_str[-2])
 		
 		return r_str[-2].split('/')[4]
 	
+	def top_processes(self):
+		command = "ps -eo pid,comm,cputime,%mem,%cpu --sort -%cpu,-%mem --no-headers".split()
+		
+		procs = subprocess.run(command, stdout=subprocess.PIPE)
+# 		print("Result:", procs)
+		
+		procs = str(procs.stdout).split('\\')
+		
+		top_procs = []
+		for p in procs[:5]:
+			l = p.split()[1:]
+			top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
+		print("Top processes: \n", top_procs)
+			
+		return top_procs
+	
 	def measure_temp(self):
 		temp = os.popen("vcgencmd measure_temp").readline()
-		temp = temp.replace("'C","")
+		temp = temp.replace("'C","").replace("temp=", "")
 		
-		return float((temp.replace("temp=","")))
+		return float(temp)
 	
 	def get_device_status(self):
 		cpu = psutil.cpu_percent()
 		mem = psutil.virtual_memory().available 
 		
-		current_milli_time = lambda: int(round(time() * 1000))
+		current_milli_time = round(time() * 1000)
 		temp = self.measure_temp()
+		top_procs = self.top_processes()
 		
-		return list([cpu, mem, temp, current_milli_time])
+		status = {"cpu": cpu, "mem":mem, "temp":temp, "ts_diff":current_milli_time-self.last_milli_time, "ps":top_procs}
+		self.last_milli_time = current_milli_time
+		
+		print(status)
+		
+		return status
 		
 	# return True if all processes started correctly and communication is working, False otherwise
 	def check_start(self):
