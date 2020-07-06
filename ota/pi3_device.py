@@ -216,7 +216,7 @@ class Device:
 			f.write("1")
 			
 	# returns ping to platform in ms
-	def ping_platform():
+	def ping_platform(self):
 		host = 'konkerlabs.com'
 		
 		# Option for the number of packets as a function of
