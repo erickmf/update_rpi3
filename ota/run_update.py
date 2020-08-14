@@ -8,7 +8,10 @@ Created on Mon Jul  6 19:31:29 2020
 import sys, json
 from pi3_device import Device
 from manifest_handler import Manifest
+from threading import Timer
 # from time import sleep
+
+num = 0
 
 def read_last_conf():
 	conf = ''
@@ -21,18 +24,9 @@ def read_last_conf():
 	
 	return conf
 
-def main(argv):
-	print("Starting manifest parser")
-	configuration = read_last_conf()
-	
-	if configuration == '':
-		return
-	
-	user = configuration['user']
-	passwd = configuration['pwd']
-	
-	M = Manifest(user,passwd)
-	D = Device(user,passwd)
+def periodic_run(D, M):
+	global num
+	num = num+1
 	
 	net_info = D.get_network_info()
 	D.send_message(net_info)
@@ -74,6 +68,24 @@ def main(argv):
 		print("Could not get manifest from Konker")
 		
 	D.send_device_status(status)
+
+	if num < 3:
+		t = Timer(10, periodic_run, [D,M])
+		t.start()
+
+def main(argv):    
+	print("Starting update check")
+	configuration = read_last_conf()
+	if configuration == '':
+		print("Failed to read configuration")
+		return
+	#user = 'hheb89ujfuol'
+	#passwd = 'xDQzzp0aYDbX'
+	user = configuration['user']
+	passwd = configuration['pwd']
+	M = Manifest(user,passwd)
+	D = Device(user,passwd)
+	periodic_run(D,M)
 
 if __name__ == "__main__":
 	main(sys.argv)

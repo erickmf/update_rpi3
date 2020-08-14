@@ -53,25 +53,28 @@ class Device:
 			self.directory_list = dirs
 		
 		out_file = "fw_" + self.version + ".zip"
-		zip_obj = ZipFile(out_file, 'w')
+		try:
+			zip_obj = ZipFile(out_file, 'w')
 		
-		print("[DEV] Backing up current FW, version ", self.version)
-		
-		os.chdir('../')
-		for d in self.directory_list:
-			for folderName, subfolders, filenames in os.walk(d):
-				for filename in filenames:
-					print("[DEV] Adding file: ", folderName + '/' + filename)
-					filePath = os.path.join(folderName, filename)
-					zip_obj.write(filePath)
-		os.chdir('ota/')
-		zip_obj.write(self.fw_info_file)
-		zip_obj.close()
+			print("[DEV] Backing up current FW, version ", self.version)
+			
+			os.chdir('../')
+			for d in self.directory_list:
+				for folderName, subfolders, filenames in os.walk(d):
+					for filename in filenames:
+						print("[DEV] Adding file: ", folderName + '/' + filename)
+						filePath = os.path.join(folderName, filename)
+						zip_obj.write(filePath)
+			os.chdir('ota/')
+			zip_obj.write(self.fw_info_file)
+			zip_obj.close()
+		except:
+			print("[DEV] It was not possible to create a backup")
 		
 # 		os.rename(out_file, 'ota/' + out_file)
 		self.backup_file = out_file
 		
-	#update FW information file with new FW
+	#update FW information file with new FW information
 	def _update_fw_info(self, new_info):
 		with open(self.fw_info_file, 'r') as f:
 			content = json.loads(f.read())
@@ -142,7 +145,10 @@ class Device:
 	def download_firmware(self):
 		print("[DEV] Retrieving FIRMWARE from Konker")
 		#get manifest from addr
-		r = requests.get('https://data.demo.konkerlabs.net/firmware/' + self.user + '/binary', auth=(self.user, self.passwd))
+		try:
+			r = requests.get('https://data.demo.konkerlabs.net/firmware/' + self.user + '/binary', auth=(self.user, self.passwd))
+		except:
+			return ''
 		print("[DEV] Status: ", r.status_code, r.reason)
 		
 		if r.status_code == 200:
@@ -210,7 +216,7 @@ class Device:
 	# restart FW
 	def restart(self):
 		print("[DEV] Reestarting FW")
-		
+		#subprocess.call('sudo supervisorctl restart gateway_update', shell=True)
 		# create file to indicate the first start of a new FW
 		with open(self.start_file, 'w') as f:
 			f.write("1")
@@ -296,12 +302,18 @@ class Device:
 	# send things to platform
 	def send_message(self, msg):
 		data = json.dumps({"update stage":msg})
-		requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+		try:
+			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
+		except:
+			print("[DEV] Message not sent")
 		print("[DEV] Sending: ", msg)
 		
 	def send_exception(self, exception):
 		data = json.dumps({"update exception":exception})
-		requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+		try:
+			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
+		except:
+			print("[DEV] Message not sent")
 		print("[DEV] Exception: ", exception)
 		
 	def send_device_status(self, status_list):
@@ -309,7 +321,10 @@ class Device:
 		
 		for s in status_list:
 			data = json.dumps(s)
-			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+			try:
+				requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+			except:
+				print("[DEV] Status not sent")
 			print("[DEV] Sending: ", s)
 			
 		print("[DEV] Done sending")
