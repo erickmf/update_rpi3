@@ -152,6 +152,9 @@ class Device:
 		print("[DEV] Status: ", r.status_code, r.reason)
 		
 		if r.status_code == 200:
+			# if it's a FW, the Content-type is application/octet-stream
+			if r.headers['Content-type'].split(';')[0] == 'application/json':
+				return ''
 			new_fw = r.content
 			print("=======================================================")
 			print(bytes(new_fw))

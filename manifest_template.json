@@ -1,0 +1,32 @@
+# campos obrigatórios: version, squence_number, device, key_claims, digital_signature, checksum
+{
+	"version": "FW version_number",
+	"sequence_number": "UTC timestamp",
+	"size": "size in bytes",
+	"device": "device name or guid",
+	"vendor_id": "uuid",
+	"expiration_date": "DD/MM/AAAA",
+	"required_version": "minimum version device should have",
+	"required_version_list": ["list", "of", "versions"],
+	"fw_url": [ "https://server:port" ],
+	"firmware": "binary",
+	"dependencies": [
+		{"lib_name": "version_number"},
+		{"other_lib": "version_number"}
+		],
+	"processing_steps": [
+		{"decode_algorithm": "decrypt|decompress",
+		"run": "script to run post install",
+		"encryption_wrapper": "wrapper"}
+		],
+	"additional_steps": [
+		{"payload_format": "binary|iso",
+		"apply_date": "DD/MM/AAAA",
+		"apply_time": "HH:MM",
+		"storage_location": "memory bank number"},
+		],
+	"author": "name",
+	"digital_signature": "signature",
+	"key_claims": "encryption key location",
+	"checksum": "MD5"
+}

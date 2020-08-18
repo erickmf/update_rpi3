@@ -51,6 +51,9 @@ class Manifest:
 		print("Status: ", r.status_code, r.reason)
 		
 		if r.status_code == 200:
+			# empty list means there is no manifest
+			if r.json() == []:
+				return False
 			self.m_json = r.json()[0]['data']
 			#r = r.text.replace("\'", "\"")
 			#self.m_json = json.loads(r)
@@ -123,7 +126,7 @@ class Manifest:
 		new_fw = device.download_firmware()
 		if new_fw == '':
 			device.send_exception("Firmware not found")
-			print("Did not receive any content")
+			print("Did not receive firmware")
 			return False
 # 		else:
 # 			try:
