@@ -11,4 +11,7 @@ Folders and files:
     - *run_update*: main program
     - *fw_info.json*: current FW metadata
     - *config.json*: platform credentials
+- *create_update*: create a FW update at Konker platform
+	- *connect_platform*: create authorization token por platform API
+	- *create_update_platform*: uploads a FW and create update
 - *manifest_server*: server for manifest and new FW
