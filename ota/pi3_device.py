@@ -262,13 +262,18 @@ class Device:
 		
 		procs = subprocess.run(command, stdout=subprocess.PIPE)
 # 		print("Result:", procs)
-		
-		procs = str(procs.stdout).split('\\')
-		
 		top_procs = []
-		for p in procs[:5]:
-			l = p.split()[1:]
-			top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
+		
+		if procs.returncode == 0:
+			procs = str(procs.stdout).split('\\n')
+			num_procs = len(procs)
+			if num_procs > 5:
+				num_procs = 5
+			
+			for p in procs[:num_procs]:
+				l = p.split()
+				if l and len(l) == 5:
+					top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
 		print("Top processes: \n", top_procs)
 			
 		return top_procs
@@ -276,9 +281,13 @@ class Device:
 	#measure device temperature
 	def measure_temp(self):
 		temp = os.popen("vcgencmd measure_temp").readline()
-		temp = temp.replace("'C","").replace("temp=", "")
+		if temp == '':
+			ret_temp = 0.0
+		else:
+			temp = temp.replace("'C","").replace("temp=", "")
+			ret_temp = float(temp)
 		
-		return float(temp)
+		return ret_temp
 	
 	# returns a dict with cpu utilization, memory utilization, 
 	#	timestamp delta (since last call of this function), device temperature,

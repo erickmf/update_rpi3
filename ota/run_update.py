@@ -8,10 +8,10 @@ Created on Mon Jul  6 19:31:29 2020
 import sys, json
 from pi3_device import Device
 from manifest_handler import Manifest
-from threading import Timer
+# from threading import Timer
 # from time import sleep
 
-num = 0
+# num = 0
 
 def read_last_conf():
 	conf = ''
@@ -25,8 +25,8 @@ def read_last_conf():
 	return conf
 
 def periodic_run(D, M):
-	global num
-	num = num+1
+# 	global num
+# 	num = num+1
 	
 	net_info = D.get_network_info()
 	D.send_message(net_info)
@@ -69,9 +69,10 @@ def periodic_run(D, M):
 		
 	D.send_device_status(status)
 
-	if num < 3:
-		t = Timer(10, periodic_run, [D,M])
-		t.start()
+	# for debugging
+# 	if num < 3:
+# 		t = Timer(10, periodic_run, [D,M])
+# 		t.start()
 
 def main(argv):    
 	print("Starting update check")
