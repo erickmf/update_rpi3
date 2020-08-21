@@ -12,7 +12,6 @@ from manifest_handler import Manifest
 from time import sleep
 
 # num = 0
-status = []
 
 def read_last_conf():
 	conf = ''
@@ -25,10 +24,9 @@ def read_last_conf():
 	
 	return conf
 
-def first_start(D):
-	net_info = D.get_network_info()
-	D.send_message(net_info)
-	status.append(D.get_device_status())
+def periodic_run(D, M, status):
+# 	global num
+# 	num = num+1
 	
 	# check if its the first start of a new FW
 	if D.check_first_start():
@@ -45,13 +43,10 @@ def first_start(D):
 	else:
 		print("Starting OTA process")
 	
-
-def periodic_run(D, M):
-	global status
-# 	global num
-# 	num = num+1
-	
 	if M.get_manifest():
+		# each time a update arrives, get network information
+		net_info = D.get_network_info()
+		D.send_message(net_info)
 		status.append(D.get_device_status())
 		D.send_message("Manifest received")
 		M.parse_manifest(D)
@@ -72,7 +67,6 @@ def periodic_run(D, M):
 		print("Could not get manifest from Konker")
 		
 	D.send_device_status(status)
-	status = []
 
 	# for debugging
 # 	if num < 3:
@@ -92,10 +86,11 @@ def main(argv):
 	M = Manifest(user,passwd)
 	D = Device(user,passwd)
 	# start collecting device informatio and check if it's the first time a FW is running
-	first_start(D)
+	status = list([D.get_device_status()])
 	# run indefnetly
 	while(1):
-		periodic_run(D,M)
+		periodic_run(D,M, status)
+		status = []
 		sleep(10) #10s
 
 if __name__ == "__main__":

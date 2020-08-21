@@ -239,6 +239,7 @@ class Device:
 		
 		if r.returncode == 0:
 			r_str = str(r.stdout).split('\\n')
+			print(r_str)
 			ret_ping = float(r_str[-2].split('/')[4])
 	# 		r_str = r_str.split('\\')
 	# 		print('>>> ', r_str[-2])
