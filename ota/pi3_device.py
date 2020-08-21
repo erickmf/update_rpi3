@@ -237,11 +237,15 @@ class Device:
 		r = subprocess.run(command, stdout=subprocess.PIPE)
 # 		print("Result:", r)
 		
-		r_str = str(r.stdout).split('\\')
-# 		r_str = r_str.split('\\')
-# 		print('>>> ', r_str[-2])
+		if r.returncode == 0:
+			r_str = str(r.stdout).split('\\n')
+			ret_ping = float(r_str[-2].split('/')[4])
+	# 		r_str = r_str.split('\\')
+	# 		print('>>> ', r_str[-2])
+		else:
+			ret_ping = 0.0
 		
-		return r_str[-2].split('/')[4]
+		return ret_ping
 	
 	# return a dict with ping and nmap info
 	def get_network_info(self):
