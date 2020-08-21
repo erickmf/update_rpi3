@@ -269,7 +269,7 @@ class Device:
 		top_procs = []
 		
 		if procs.returncode == 0:
-			procs = str(procs.stdout).split('\\n')
+			procs = str(procs.stdout).split('\\n')[1:]
 			num_procs = len(procs)
 			if num_procs > 5:
 				num_procs = 5

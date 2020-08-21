@@ -9,9 +9,10 @@ import sys, json
 from pi3_device import Device
 from manifest_handler import Manifest
 # from threading import Timer
-# from time import sleep
+from time import sleep
 
 # num = 0
+status = []
 
 def read_last_conf():
 	conf = ''
@@ -24,13 +25,10 @@ def read_last_conf():
 	
 	return conf
 
-def periodic_run(D, M):
-# 	global num
-# 	num = num+1
-	
+def first_start(D):
 	net_info = D.get_network_info()
 	D.send_message(net_info)
-	status = list([D.get_device_status()])
+	status.append(D.get_device_status())
 	
 	# check if its the first start of a new FW
 	if D.check_first_start():
@@ -46,6 +44,12 @@ def periodic_run(D, M):
 		return
 	else:
 		print("Starting OTA process")
+	
+
+def periodic_run(D, M):
+	global status
+# 	global num
+# 	num = num+1
 	
 	if M.get_manifest():
 		status.append(D.get_device_status())
@@ -68,13 +72,14 @@ def periodic_run(D, M):
 		print("Could not get manifest from Konker")
 		
 	D.send_device_status(status)
+	status = []
 
 	# for debugging
 # 	if num < 3:
 # 		t = Timer(10, periodic_run, [D,M])
 # 		t.start()
 
-def main(argv):    
+def main(argv):
 	print("Starting update check")
 	configuration = read_last_conf()
 	if configuration == '':
@@ -86,7 +91,12 @@ def main(argv):
 	passwd = configuration['pwd']
 	M = Manifest(user,passwd)
 	D = Device(user,passwd)
-	periodic_run(D,M)
+	# start collecting device informatio and check if it's the first time a FW is running
+	first_start(D)
+	# run indefnetly
+	while(1):
+		periodic_run(D,M)
+		sleep(10) #10s
 
 if __name__ == "__main__":
 	main(sys.argv)
