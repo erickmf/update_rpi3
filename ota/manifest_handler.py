@@ -144,18 +144,21 @@ class Manifest:
 			device.send_exception("Checksum did not match")
 			print("Checksum incorrect!")
 			return False
-		
+
 		#do post update stuff (if needed)
 		if 'processing_steps' in self.m_parsed:
 			print("Doing processing steps: ", self.m_parsed['processing_steps'][0])
-# 			p_steps = self.m_parsed['processing_steps'][0]
-# 			if p_steps.get('decode_algorithm'):
-# 				new_fw_fname = device.write_file(new_fw, self.m_json.get('version'), p_steps['decode_algorithm'])
+			p_steps = self.m_parsed['processing_steps'][0]
+			if p_steps.get('decode_algorithm'):
+				new_fw_fname = device.write_file(new_fw, self.m_json.get('version'), p_steps['decode_algorithm'])
+			else:
+				new_fw_fname = device.write_file(new_fw, self.m_json.get('version'), 'zip')            
+		else:
 			new_fw_fname = device.write_file(new_fw, self.m_json.get('version'), 'zip')
-		
+
 		if 'additional_steps' in self.m_parsed:
 			print("Doing addtional steps: ", self.m_parsed['additional_steps'][0])
-		
+
 		#substitute fw
 		print("Applying new firmware")
 		device.apply_firmware(new_fw_fname, (self.m_json.get("version"), self.m_json.get("sequence_number"), self.m_json.get("size"), self.m_json.get("expiration_date"), self.m_json.get("author"), self.m_json.get("digital_signature"), self.m_json.get("key_claims"), self.m_json.get("checksum")))
