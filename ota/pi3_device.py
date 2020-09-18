@@ -87,15 +87,15 @@ class Device:
 		content["digital_signature"] = new_info[5]
 		content["key_claims"] = new_info[6]
 		content["checksum"] = new_info[7]
-		content["backup"] = self.backup_file
-		
+		content["backup"] = "fw_" + self.version + ".zip"
+
 		with open(self.fw_info_file, 'w') as f:
 			f.write(json.dumps(content))
 
+		self.backup_file = content["backup"]
 		self.version = content["version"]
 		self.sequence_number = content["sequence_number"]
-		self.backup_file = content["backup"]
-			
+
 	# Return True if ver1 > ver2, False otherwise
 	def _compare_versions(self, ver1, ver2):
 		print('Version NEW: '+ str(ver1))
@@ -176,7 +176,7 @@ class Device:
 		if steps:
 			print("-> ", steps)
 			
-		self._backup_fw()
+		# self._backup_fw()
 		
 		#decompress new FW
 		with ZipFile(new_fw, 'r') as zip_obj:

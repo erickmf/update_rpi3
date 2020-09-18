@@ -79,8 +79,7 @@ def main(argv):
 	if configuration == '':
 		print("Failed to read configuration")
 		return
-	#user = 'hheb89ujfuol'
-	#passwd = 'xDQzzp0aYDbX'
+
 	user = configuration['user']
 	passwd = configuration['pwd']
 	M = Manifest(user,passwd)

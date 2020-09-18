@@ -44,7 +44,7 @@ class Manifest:
 	def get_manifest(self):
 		print("Retrieving manifest from Konker Platform")
 		try:
-			r = requests.get('http://data.demo.konkerlabs.net/sub/' + self.user + '/_update', auth=(self.user, self.passwd))
+			r = requests.get('http://data.prod.konkerlabs.net/sub/' + self.user + '/_update', auth=(self.user, self.passwd))
 		except:
 			return False
 		#get manifest from addr
@@ -167,10 +167,7 @@ class Manifest:
 		else:
 			new_fw_fname = device.write_file(new_fw, self.m_json.get('version'), 'zip')
 			
-
-
 		if 'additional_steps' in self.m_parsed:
 			print("Doing addtional steps: ", self.m_parsed['additional_steps'][0])
 
-		
 		return True
