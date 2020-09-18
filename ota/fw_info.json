@@ -1,1 +1,1 @@
-{"version":"1.0.1", "sequence_number":"3796729686678", "size":"4000", "device":"node02", "expiration_date":"31/12/2020", "author":"majubs", "digital_signature":"", "key_claims":"encryptionkeylocation", "checksum":"97b97aec2e3027191ac383266da4fb4f"}
+{"version":"0.0.0", "sequence_number":"0", "size":"", "device":"gateway_tst", "expiration_date":"31/12/2020", "author":"erickmf", "digital_signature":"", "key_claims":"", "checksum":""}

@@ -16,7 +16,7 @@ from time import sleep
 def read_last_conf():
 	conf = ''
 	try:
-		with open('config.json', 'r') as infile:
+		with open('../master/config.json', 'r') as infile:
 			conf = json.load(infile)
 	# Do something with the file
 	except IOError:

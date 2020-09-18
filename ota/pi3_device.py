@@ -91,6 +91,10 @@ class Device:
 		
 		with open(self.fw_info_file, 'w') as f:
 			f.write(json.dumps(content))
+
+		self.version = content["version"]
+		self.sequence_number = content["sequence_number"]
+		self.backup_file = content["backup"]
 			
 	# Return True if ver1 > ver2, False otherwise
 	def _compare_versions(self, ver1, ver2):
@@ -146,7 +150,7 @@ class Device:
 		print("[DEV] Retrieving FIRMWARE from Konker")
 		#get manifest from addr
 		try:
-			r = requests.get('https://data.demo.konkerlabs.net/firmware/' + self.user + '/binary', auth=(self.user, self.passwd))
+			r = requests.get('https://data.prod.konkerlabs.net/firmware/' + self.user + '/binary', auth=(self.user, self.passwd))
 		except:
 			return ''
 		print("[DEV] Status: ", r.status_code, r.reason)
@@ -184,6 +188,16 @@ class Device:
 		
 		self._update_fw_info(fw_info)
 		
+
+	def run_cmd_install(self, cmd):
+		if cmd:
+			return_code = subprocess.run(cmd.split(), cwd="../app/")
+
+			if return_code == 0:
+				return True
+
+		return False
+
 	# write the new fw to flash
 	def write_file(self, fw, version, alg):
 		file_name = "fw_" + version + "." + alg
@@ -328,7 +342,7 @@ class Device:
 	def send_exception(self, exception):
 		data = json.dumps({"update exception":exception})
 		try:
-			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
+			requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
 		except:
 			print("[DEV] Message not sent")
 		print("[DEV] Exception: ", exception)
@@ -339,7 +353,7 @@ class Device:
 		for s in status_list:
 			data = json.dumps(s)
 			try:
-				requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
+				requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
 			except:
 				print("[DEV] Status not sent")
 			print("[DEV] Sending: ", s)
