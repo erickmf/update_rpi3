@@ -1,1 +1,1 @@
-{"version":"0.0.0", "sequence_number":"0", "size":"", "device":"gateway_tst", "expiration_date":"31/12/2020", "author":"erickmf", "digital_signature":"", "key_claims":"", "checksum":""}
+{"version": "0.2.7", "sequence_number": "1600452058255", "size": null, "device": "gateway_tst", "expiration_date": null, "author": null, "digital_signature": "", "key_claims": "", "checksum": "50390beb3d1e3815c87c6c7c340cb00a", "backup": "fw_0.2.6.zip"}

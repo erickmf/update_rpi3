@@ -5,7 +5,7 @@ Created on Thu Apr 30 18:50:59 2020
 
 @author: majubs
 """
-import json, requests, os, platform, subprocess, psutil
+import json, requests, os, platform, subprocess, psutil, socket
 from zipfile import ZipFile
 from time import time
 
@@ -25,20 +25,36 @@ class Device:
 			if content.get("device"):
 				self.device = content["device"]
 			else:
-				self.device = 'node00'
+				self.device = socket.gethostname()
 			if content.get("sequence_number"):
 				self.sequence_number = content["sequence_number"]
 			else:
-				self.sequence_number = '9999999999999'
+				self.sequence_number = '0'
 			if content.get("backup"):
 				self.backup_file = content["backup"]
 			else:
-				self.backup_file = "fw.zip"
+				self.backup_file = None
 		except:
 			self.version = '0.0.0'
-			self.device = 'node00'
-			self.sequence_number = '9999999999999'
-			self.backup_file = "fw.zip"
+			self.device = socket.gethostname()
+			self.sequence_number = '0'
+			self.backup_file = None
+
+			content = dict()
+			content["version"] = self.version
+			content["device"] = self.device
+			content["sequence_number"] = self.sequence_number
+			content["size"] = None
+			content["expiration_date"] = None
+			content["author"] = "Konker"
+			content["digital_signature"] = None
+			content["key_claims"] = None
+			content["checksum"] = None
+			content["backup"] = self.backup_file
+
+			with open(fw_info_file, 'w') as f:
+				f.write(json.dumps(content))
+
 # 		self.directory_list = ['conf', 'rtd-LoRa', 'master'] #, 'ota']
 		self.directory_list = ['app']
 		self.fw_info_file = fw_info_file
@@ -46,7 +62,12 @@ class Device:
 		self.user = user
 		self.passwd = passwd
 		self.last_milli_time = round(time() * 1000)
-		
+
+		if not os.path.exists('../app'):
+			os.makedirs('../app')
+			print("Criado a pasta app")
+
+
 	#backup current FW in zip format
 	def _backup_fw(self, dirs=''):
 		if dirs:
@@ -334,7 +355,7 @@ class Device:
 	def send_message(self, msg):
 		data = json.dumps({"update stage":msg})
 		try:
-			requests.post('http://data.demo.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
+			requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
 		except:
 			print("[DEV] Message not sent")
 		print("[DEV] Sending: ", msg)
