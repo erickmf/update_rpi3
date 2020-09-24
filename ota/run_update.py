@@ -44,26 +44,23 @@ def periodic_run(D, M, status):
 		print("Starting OTA process")
 	
 	if M.get_manifest():
-		# each time a update arrives, get network information
-		net_info = D.get_network_info()
-		D.send_message(net_info)
-		status.append(D.get_device_status())
-		D.send_message("Manifest received")
 		M.parse_manifest(D)
 		if M.valid:
-# 			sleep(2)
+			# each time a update arrives, get network information
+			net_info = D.get_network_info()
+			D.send_message(net_info)
 			status.append(D.get_device_status())
-			D.send_message("Manifest correct")
+			D.send_message("Manifest received")
+
 			if M.apply_manifest(D):
 				print("Update finished!")
 				status.append(D.get_device_status())
-				D.send_message("Rebooting")
 				D.restart()
 		else:
-			D.send_exception("Manifest incorrect")
+			# D.send_exception("Manifest incorrect")
 			print("Manifest format is incorrect")
 	else:
-		D.send_exception("Could not get manifest")
+		# D.send_exception("Could not get manifest")
 		print("Could not get manifest from Konker")
 		
 	D.send_device_status(status)

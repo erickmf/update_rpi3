@@ -137,7 +137,11 @@ class Device:
 		return True
 	
 	def check_device(self, device_type):
-		return self.device == device_type
+		flag = self.device == device_type
+		if not flag:
+			self.send_exception("Update for different device")
+
+		return flag
 	
 	def check_memory(self, fw_size):
 		return True
@@ -151,7 +155,11 @@ class Device:
 		return True
 	
 	def check_sequence_number(self, seq_number):
-		return int(self.sequence_number) < int(seq_number)
+		flag = int(self.sequence_number) < int(seq_number)
+		if not flag:
+			self.send_exception("Older sequence number")
+		
+		return flag
 	
 	def check_signature(self, signature, key_claims):
 		return True
@@ -160,7 +168,11 @@ class Device:
 		return True
 	
 	def check_version(self, new_version):
-		return self._compare_versions(new_version, self.version)
+		flag = self._compare_versions(new_version, self.version)
+		if not flag:
+			self.send_exception("Older version")
+			
+		return flag
 	
 	def check_version_list(self, req_version_list):
 		if self.version in req_version_list:
