@@ -5,7 +5,7 @@ Created on Mon Apr 13 14:28:43 2020
 
 @author: majubs
 """
-import requests, hashlib
+import requests, hashlib, logging
 # from time import sleep
 
 num = 0
@@ -36,19 +36,19 @@ class Manifest:
 		self.passwd = passwd
 		
 	def _print_errors(self, err_filter):
-		print("Errors parsing manifest:", err_filter)
+		# print("Errors parsing manifest: %s", err_filter)
 		errs = [e for (e, i) in zip(self.errors_msg, err_filter) if i]
 		for e in errs:
-			print("[ERRROR]", e)
+			logging.debug("[ERRROR] %s", e)
 	
 	def get_manifest(self):
-		print("Retrieving manifest from Konker Platform")
+		logging.debug("Retrieving manifest from Konker Platform")
 		try:
 			r = requests.get('http://data.prod.konkerlabs.net/sub/' + self.user + '/_update', auth=(self.user, self.passwd))
 		except:
 			return False
 		#get manifest from addr
-		print("Status: ", r.status_code, r.reason)
+		logging.debug("Status: %d %s", r.status_code, r.reason)
 		
 		if r.status_code == 200:
 			# empty list means there is no manifest
@@ -64,14 +64,14 @@ class Manifest:
 		return False
 	
 	def parse_manifest(self, device):
-		print("Parsing and validating manifest")
+		logging.debug("Parsing and validating manifest")
 		
 		# check_errs will de used as a filter for error messages, a True element means error ocurred
 		# device.check_* functions return True if check is OK
 		# so check_errs elements receive the negated result of device.check_* funtions
 		check_errs =  []
 		for field in self.required_elements:
-			print("Check for required element ", field)
+			logging.debug("Check for required element %s", field)
 			if field in self.m_json and self.m_json.get(field) != None:
 				if field == "version":
 					check_errs.append(not device.check_version(self.m_json.get(field)))
@@ -85,13 +85,13 @@ class Manifest:
 					check_errs.append(False)
 					self.m_parsed[field] = self.m_json.get(field)
 			else:
-				print("Required element missing from manifest: ", field)
+				logging.debug("Required element missing from manifest: %s", field)
 				check_errs.append(True)
 # 				self.valid = False
 			
 # 		print(">>> Required elements: ", self.valid)
 		for field in self.optional_elements:
-			print("Checking for optional element ", field)
+			logging.debug("Checking for optional element %s", field)
 			if field in self.m_json and self.m_json.get(field) != None:
 				if field == "vendor_id":
 					check_errs.append(not device.check_vendor(self.m_json.get(field)))
@@ -109,7 +109,7 @@ class Manifest:
 					check_errs.append(False)
 					self.m_parsed[field] = self.m_json.get(field)
 			else:
-				print("Optional element NOT in manifest: ", field)
+				logging.debug("Optional element NOT in manifest: %s", field)
 		
 		# check if any error occured
 		incorrect = False

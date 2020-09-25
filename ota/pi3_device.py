@@ -5,7 +5,7 @@ Created on Thu Apr 30 18:50:59 2020
 
 @author: majubs
 """
-import json, requests, os, platform, subprocess, psutil, socket
+import json, requests, os, platform, subprocess, psutil, socket, logging
 from zipfile import ZipFile
 from time import time
 
@@ -171,7 +171,7 @@ class Device:
 		flag = self._compare_versions(new_version, self.version)
 		if not flag:
 			self.send_exception("Older version")
-			
+
 		return flag
 	
 	def check_version_list(self, req_version_list):
@@ -193,9 +193,9 @@ class Device:
 			if r.headers['Content-type'].split(';')[0] == 'application/json':
 				return ''
 			new_fw = r.content
-			print("=======================================================")
-			print(bytes(new_fw))
-			print("=======================================================")
+			# print("=======================================================")
+			# print(bytes(new_fw))
+			# print("=======================================================")
 			
 			return new_fw
 		
@@ -298,7 +298,7 @@ class Device:
 	# return a dict with ping and nmap info
 	def get_network_info(self):
 		ping = self.ping_platform()
-		print("[DEV] Ping is {} ms".format(ping))
+		logging.debug("[DEV] Ping is {} ms".format(ping))
 		
 		# TODO get this info
 		nmap = {}
@@ -326,7 +326,7 @@ class Device:
 				l = p.split()
 				if l and len(l) == 5:
 					top_procs.append({"pid":l[0], "comm":l[1], "time":l[2], "mem":l[3], "cpu":l[4]})
-		print("Top processes: \n", top_procs)
+		# print("Top processes: \n", top_procs)
 			
 		return top_procs
 	
@@ -355,7 +355,7 @@ class Device:
 		status = {"cpu": cpu, "mem":mem, "temp":temp, "ts_diff":current_milli_time-self.last_milli_time, "ps":top_procs}
 		self.last_milli_time = current_milli_time
 		
-		print(status)
+		# print(status)
 		
 		return status
 		
@@ -370,7 +370,7 @@ class Device:
 			requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
 		except:
 			print("[DEV] Message not sent")
-		print("[DEV] Sending: ", msg)
+		logging.debug("[DEV] Sending: %s", msg)
 		
 	def send_exception(self, exception):
 		data = json.dumps({"update exception":exception})
@@ -378,10 +378,10 @@ class Device:
 			requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update_in', auth=(self.user, self.passwd), data=data)
 		except:
 			print("[DEV] Message not sent")
-		print("[DEV] Exception: ", exception)
+		logging.debug("[DEV] Exception: %s", exception)
 		
 	def send_device_status(self, status_list):
-		print("[DEV] Sending status colllected during execution")
+		logging.debug("[DEV] Sending status colllected during execution")
 		
 		for s in status_list:
 			data = json.dumps(s)
@@ -389,6 +389,6 @@ class Device:
 				requests.post('http://data.prod.konkerlabs.net/pub/' + self.user + '/_update', auth=(self.user, self.passwd), data=data)
 			except:
 				print("[DEV] Status not sent")
-			print("[DEV] Sending: ", s)
+			# print("[DEV] Sending: ", s)
 			
-		print("[DEV] Done sending")
+		logging.debug("[DEV] Done sending")

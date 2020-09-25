@@ -5,7 +5,7 @@ Created on Mon Jul  6 19:31:29 2020
 
 @author: majubs
 """
-import sys, json
+import sys, json, logging
 from pi3_device import Device
 from manifest_handler import Manifest
 # from threading import Timer
@@ -41,7 +41,7 @@ def periodic_run(D, M, status):
 			D.rollback()
 		return
 	else:
-		print("Starting OTA process")
+		logging.debug("Starting OTA process")
 	
 	if M.get_manifest():
 		M.parse_manifest(D)
@@ -58,7 +58,7 @@ def periodic_run(D, M, status):
 				D.restart()
 		else:
 			# D.send_exception("Manifest incorrect")
-			print("Manifest format is incorrect")
+			logging.debug("Manifest format is incorrect")
 	else:
 		# D.send_exception("Could not get manifest")
 		print("Could not get manifest from Konker")
@@ -71,6 +71,9 @@ def periodic_run(D, M, status):
 # 		t.start()
 
 def main(argv):
+
+	logging.basicConfig(level=logging.INFO)
+
 	print("Starting update check")
 	configuration = read_last_conf()
 	if configuration == '':
